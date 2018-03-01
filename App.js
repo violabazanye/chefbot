@@ -1,23 +1,21 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { DrawerNavigator, StackNavigator } from 'react-navigation';
+import MainScreen from './MainScreen';
+import ListScreen from './ListScreen';
 
-export default class App extends React.Component {
-  render() {
-    return (
-      <View style={styles.container}>
-        <Text>Open up App.js to start working on your app!</Text>
-        <Text>Changes you make will automatically reload.</Text>
-        <Text>Shake your phone to open the developer menu.</Text>
-      </View>
-    );
-  }
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+const App = DrawerNavigator({
+  MainScreen: {
+    screen: MainScreen,
+    navigationOptions: {
+      drawerLabel: 'Home',
+    },
+  },
+  ListScreen: {
+    screen: ListScreen,
+    navigationOptions: {
+      drawerLabel: 'Shopping List',
+    },
   },
 });
+
+export default App;
