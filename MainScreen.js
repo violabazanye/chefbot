@@ -23,7 +23,7 @@ class MainScreen extends React.Component {
                     //send to wit.ai
                 }}
                 user={{
-                    _id: 1,
+                    _id: 1, 
                 }} />
         </View>
       );
