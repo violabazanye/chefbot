@@ -1,31 +1,105 @@
 import React from 'react';
-import { StyleSheet, Text, View, TouchableNativeFeedback, Image, TextInput } from 'react-native';
+import { StyleSheet, Text, View, TouchableNativeFeedback, Image, TextInput, KeyboardAvoidingView, Keyboard, Dimensions } from 'react-native';
 import { StackNavigator } from 'react-navigation';
-import { GiftedChat } from 'react-native-gifted-chat';
+import { GiftedChat, Bubble, Send } from 'react-native-gifted-chat';
 
 class MainScreen extends React.Component {
     constructor(props){
         super(props);
         this.state = {
             messages: [],
+            visibleHeight: Dimensions.get('window').height,
         };
+    }
+
+    //using bind or arrows in your render methods creates a new function on each render, resulting in a change of props for the child that receives them, forcing a re-render.
+    componentWillMount(){
+        this.keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', this._keyboardDidShow.bind(this))
+        this.keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', this._keyboardDidHide.bind(this))
+        
+        this.setState({
+            messages: [
+                {
+                    _id: 1,
+                    text: 'Hello developer',
+                    createdAt: new Date(),
+                    user: {
+                        _id: 2,
+                        name: 'Chef Bot',
+                        avatar: './img/chefbot.png',
+                    },
+                },
+            ],
+        })
+    }
+
+    componentWillUnmount () {
+        this.keyboardDidShowListener.remove()
+        this.keyboardDidHideListener.remove()
+    }
+
+    //not working
+    _keyboardDidShow(e){
+        this.setState(previousState => ({
+            visibleHeight: previousState.visibleHeight - e.endCoordinates.height,
+        }))
+        //alert(this.state.visibleHeight);
+    }
+
+    _keyboardDidHide(e){
+        this.setState(previousState => ({
+            visibleHeight: previousState.visibleHeight,
+        }))
+    }
+
+    onSend(messages = []){
+        this.setState(previousState => ({
+            messages: GiftedChat.append(previousState.messages, messages),
+        }))
+    }
+
+    renderBubble(props){
+        return (
+            <Bubble
+                {...props}
+                wrapperStyle={{
+                    left: {
+                        backgroundColor: '#B81365',
+                    },
+                    right: {
+                        backgroundColor: '#6A0136',
+                    }
+                }}
+            />
+        );
+    }
+
+    //not working
+    renderSend(props){
+        return(
+            <Send
+            {...props}
+            wrapperStyle={{
+                textStyle: {
+                    color: '#6A0136',
+                }
+            }} />
+        );
     }
     
     render() {
       return (
-        <View style={styles.container}>
+        <KeyboardAvoidingView style={styles.container} behavior="padding" keyboardVerticalOffset={this.state.visibleHeight}>
             <GiftedChat
                 placeholder="Type here"
-                isAnimated={true}
-                bottomOffset={16}
                 messages={this.state.messages}
-                onSend={(message) => {
-                    //send to wit.ai
-                }}
+                onSend={messages => this.onSend(messages)}
                 user={{
                     _id: 1, 
-                }} />
-        </View>
+                }}
+                renderBubble={this.renderBubble}
+                renderSend={this.renderSend} />
+        </KeyboardAvoidingView>
       );
     }
 }
