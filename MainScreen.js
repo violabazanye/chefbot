@@ -1,14 +1,14 @@
 import React from 'react';
 import { StyleSheet, Text, View, TouchableNativeFeedback, Image, TextInput, KeyboardAvoidingView, Keyboard, Dimensions } from 'react-native';
 import { StackNavigator } from 'react-navigation';
-import { GiftedChat, Bubble, Send } from 'react-native-gifted-chat';
+import { GiftedChat, Bubble, Send, InputToolbar } from 'react-native-gifted-chat';
 
 class MainScreen extends React.Component {
     constructor(props){
         super(props);
         this.state = {
             messages: [],
-            visibleHeight: Dimensions.get('window').height,
+            visibleHeight: Dimensions.get('screen').height,
         };
     }
 
@@ -21,12 +21,12 @@ class MainScreen extends React.Component {
             messages: [
                 {
                     _id: 1,
-                    text: 'Hello developer',
+                    text: 'Hello Viola',
                     createdAt: new Date(),
                     user: {
                         _id: 2,
                         name: 'Chef Bot',
-                        avatar: './img/chefbot.png',
+                        avatar: require('./img/logo.png'),
                     },
                 },
             ],
@@ -43,7 +43,6 @@ class MainScreen extends React.Component {
         this.setState(previousState => ({
             visibleHeight: previousState.visibleHeight - e.endCoordinates.height,
         }))
-        //alert(this.state.visibleHeight);
     }
 
     _keyboardDidHide(e){
@@ -64,26 +63,33 @@ class MainScreen extends React.Component {
                 {...props}
                 wrapperStyle={{
                     left: {
-                        backgroundColor: '#B81365',
+                        backgroundColor: '#E5E3E6',
                     },
                     right: {
-                        backgroundColor: '#6A0136',
+                        backgroundColor: '#026C7C',
                     }
                 }}
             />
         );
     }
 
-    //not working
+    renderInputToolbar(props){
+        return(
+            <InputToolbar
+            {...props}
+            containerStyle={{
+                borderTopColor: '#979797',
+            }} />
+        );
+    }
+
     renderSend(props){
         return(
-            <Send
-            {...props}
-            wrapperStyle={{
-                textStyle: {
-                    color: '#6A0136',
-                }
-            }} />
+            <Send {...props}>
+                <View style={{marginRight: 0, marginBottom: 0}}>
+                    <Image source={require('./img/send-button.png')} resizeMode={'center'}/>
+                </View>
+            </Send>
         );
     }
     
@@ -92,12 +98,14 @@ class MainScreen extends React.Component {
         <KeyboardAvoidingView style={styles.container} behavior="padding" keyboardVerticalOffset={this.state.visibleHeight}>
             <GiftedChat
                 placeholder="Type here"
+                isAnimated={true}
                 messages={this.state.messages}
                 onSend={messages => this.onSend(messages)}
                 user={{
                     _id: 1, 
                 }}
                 renderBubble={this.renderBubble}
+                renderInputToolbar={this.renderInputToolbar}
                 renderSend={this.renderSend} />
         </KeyboardAvoidingView>
       );
@@ -107,7 +115,7 @@ class MainScreen extends React.Component {
 const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: '#026C7C',
+      backgroundColor: 'white', 
     },
     inputStyle: {
         margin: 16,
