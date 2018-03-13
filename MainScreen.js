@@ -60,7 +60,7 @@ class MainScreen extends React.Component {
     _keyboardDidHide = (event) => {
         Animated.parallel([
             Animated.timing(this.keyboardHeight, {
-                duration: event.duration,
+                duration: 0,
                 toValue: 0,
             }),
         ]).start();
