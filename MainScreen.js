@@ -1,5 +1,14 @@
 import React from 'react';
-import { StyleSheet, Text, View, TouchableNativeFeedback, Image, TextInput, KeyboardAvoidingView, Keyboard, Dimensions } from 'react-native';
+import { 
+    StyleSheet, 
+    Text, 
+    View, 
+    TouchableNativeFeedback, 
+    Image, 
+    TextInput, 
+    KeyboardAvoidingView, 
+    Keyboard, 
+    Dimensions } from 'react-native';
 import { StackNavigator } from 'react-navigation';
 import { GiftedChat, Bubble, Send, InputToolbar } from 'react-native-gifted-chat';
 
@@ -9,7 +18,7 @@ class MainScreen extends React.Component {
         this.state = {
             messages: [],
             visibleHeight: Dimensions.get('screen').height,
-        };
+        }; 
     }
 
     //using bind or arrows in your render methods creates a new function on each render, resulting in a change of props for the child that receives them, forcing a re-render.
@@ -21,7 +30,7 @@ class MainScreen extends React.Component {
             messages: [
                 {
                     _id: 1,
-                    text: 'Hello Viola',
+                    text: 'Hello Viola!',
                     createdAt: new Date(),
                     user: {
                         _id: 2,
@@ -41,7 +50,7 @@ class MainScreen extends React.Component {
     //not working
     _keyboardDidShow(e){
         this.setState(previousState => ({
-            visibleHeight: previousState.visibleHeight - e.endCoordinates.height,
+            visibleHeight: previousState.visibleHeight - e.endCoordinates.height, 
         }))
     }
 
@@ -75,18 +84,19 @@ class MainScreen extends React.Component {
 
     renderInputToolbar(props){
         return(
-            <InputToolbar
-            {...props}
-            containerStyle={{
-                borderTopColor: '#979797',
-            }} />
+            <InputToolbar 
+                {...props}
+                containerStyle={{
+                 
+                }}
+            />
         );
     }
 
     renderSend(props){
         return(
             <Send {...props}>
-                <View style={{marginRight: 0, marginBottom: 0}}>
+                <View style={{marginRight:20}}>
                     <Image source={require('./img/send-button.png')} resizeMode={'center'}/>
                 </View>
             </Send>
@@ -95,7 +105,7 @@ class MainScreen extends React.Component {
     
     render() {
       return (
-        <KeyboardAvoidingView style={styles.container} behavior="padding" keyboardVerticalOffset={this.state.visibleHeight}>
+        <KeyboardAvoidingView style={styles.container} behavior="padding">
             <GiftedChat
                 placeholder="Type here"
                 isAnimated={true}
@@ -120,7 +130,8 @@ const styles = StyleSheet.create({
     inputStyle: {
         margin: 16,
         borderRadius: 24,
-        justifyContent: 'center',
+        borderColor: '#979797',
+        position: 'absolute',
     },
 });
 
