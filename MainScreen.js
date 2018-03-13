@@ -6,7 +6,7 @@ import {
     TouchableNativeFeedback, 
     Image, 
     TextInput, 
-    KeyboardAvoidingView, 
+    Animated, 
     Keyboard, 
     Dimensions } from 'react-native';
 import { StackNavigator } from 'react-navigation';
@@ -19,6 +19,7 @@ class MainScreen extends React.Component {
             messages: [],
             visibleHeight: Dimensions.get('screen').height,
         }; 
+        this.keyboardHeight = new Animated.Value(0);
     }
 
     //using bind or arrows in your render methods creates a new function on each render, resulting in a change of props for the child that receives them, forcing a re-render.
@@ -27,7 +28,7 @@ class MainScreen extends React.Component {
         this.keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', this._keyboardDidHide.bind(this))
         
         this.setState({
-            messages: [
+            messages: [ 
                 {
                     _id: 1,
                     text: 'Hello Viola!',
@@ -47,18 +48,23 @@ class MainScreen extends React.Component {
         this.keyboardDidHideListener.remove()
     }
 
-    //not working
-    _keyboardDidShow(e){
-        this.setState(previousState => ({
-            visibleHeight: previousState.visibleHeight - e.endCoordinates.height, 
-        }))
-    }
+    _keyboardDidShow = (event) => {
+        Animated.parallel([
+            Animated.timing(this.keyboardHeight, {
+                duration: event.duration,
+                toValue: event.endCoordinates.height,
+            }),
+        ]).start();
+    };
 
-    _keyboardDidHide(e){
-        this.setState(previousState => ({
-            visibleHeight: previousState.visibleHeight,
-        }))
-    }
+    _keyboardDidHide = (event) => {
+        Animated.parallel([
+            Animated.timing(this.keyboardHeight, {
+                duration: event.duration,
+                toValue: 0,
+            }),
+        ]).start();
+    };
 
     onSend(messages = []){
         this.setState(previousState => ({
@@ -84,19 +90,14 @@ class MainScreen extends React.Component {
 
     renderInputToolbar(props){
         return(
-            <InputToolbar 
-                {...props}
-                containerStyle={{
-                 
-                }}
-            />
+            <InputToolbar {...props}/>
         );
     }
 
     renderSend(props){
         return(
             <Send {...props}>
-                <View style={{marginRight:20}}>
+                <View>
                     <Image source={require('./img/send-button.png')} resizeMode={'center'}/>
                 </View>
             </Send>
@@ -105,7 +106,7 @@ class MainScreen extends React.Component {
     
     render() {
       return (
-        <KeyboardAvoidingView style={styles.container} behavior="padding">
+        <Animated.View style={[styles.container, {paddingBottom: this.keyboardHeight}]}>
             <GiftedChat
                 placeholder="Type here"
                 isAnimated={true}
@@ -117,7 +118,7 @@ class MainScreen extends React.Component {
                 renderBubble={this.renderBubble}
                 renderInputToolbar={this.renderInputToolbar}
                 renderSend={this.renderSend} />
-        </KeyboardAvoidingView>
+        </Animated.View>
       );
     }
 }
