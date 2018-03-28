@@ -7,7 +7,9 @@ import {
     Image, 
     TextInput, 
     Animated, 
-    Keyboard, 
+    Keyboard,
+    Alert, 
+    Button,
     Dimensions } from 'react-native';
 import { StackNavigator } from 'react-navigation';
 import { GiftedChat, Bubble, Send, InputToolbar } from 'react-native-gifted-chat';
@@ -17,9 +19,44 @@ class MainScreen extends React.Component {
         super(props);
         this.state = {
             messages: [],
-            visibleHeight: Dimensions.get('screen').height,
+            right: 0,
         }; 
         this.keyboardHeight = new Animated.Value(0);
+        this.renderSend = this.renderSend.bind(this);
+        this.connectToWitApi = this.connectToWitApi.bind(this);
+        this.getRecipesFromAPi = this.getRecipesFromAPi.bind(this);
+    }
+
+    connectToWitApi = async() => {
+        fetch('https://api.wit.ai/message?v=20170307&q=' + 'i%20want%20to%20have%20a%20light%20lunch', {
+            method: 'GET',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + 'IFRWTVUKX33BEVWXJQ4XCLAYNX3R6W7R',
+            }, 
+        }).then((response) => response.json())
+          .then((responseJson) => {
+              console.log(responseJson.entities.typeOfMeal[0].value); 
+          }).catch((error) => {
+              console.error(error);
+          });
+    }
+
+    //keep searching for better api
+    getRecipesFromAPi = async(param) => {
+        fetch("http://food2fork.com/api/search?key=48aecb84c8894961ef3e0e152b72f733&q=" + param, {
+            method: 'GET',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            }, 
+        }).then((response) => response.json()) 
+          .then((responseJson) => {
+              console.log(responseJson); 
+          }).catch((error) => {
+              console.error(error);
+          });
     }
 
     //using bind or arrows in your render methods creates a new function on each render, resulting in a change of props for the child that receives them, forcing a re-render.
@@ -39,13 +76,33 @@ class MainScreen extends React.Component {
                         avatar: require('./img/logo.png'),
                     },
                 },
-            ],
+            ], 
         })
     }
 
+    componentDidMount(){  
+        Dimensions.addEventListener('change', () => {
+            const {width, height} = Dimensions.get('screen')
+            if(height < width){
+                this.setState({
+                    right: (width+50)-width
+                });
+            }else{
+                this.setState({
+                    right: (width+280)-width  
+                }); 
+            }
+        });
+
+        //http request to wit ai
+        this.connectToWitApi();
+        this.getRecipesFromAPi("chicken");
+    }
+
     componentWillUnmount () {
-        this.keyboardDidShowListener.remove()
-        this.keyboardDidHideListener.remove()
+        this.keyboardDidShowListener.remove();
+        this.keyboardDidHideListener.remove();
+        Dimensions.removeEventListener("change", this.renderSend);
     }
 
     _keyboardDidShow = (event) => {
@@ -96,7 +153,10 @@ class MainScreen extends React.Component {
 
     renderSend(props){
         return(
-            <Send {...props}>
+            <Send {...props}
+                containerStyle={{
+                    right: this.state.right,
+                }}>
                 <View>
                     <Image source={require('./img/send-button.png')} resizeMode={'center'}/>
                 </View>
@@ -155,7 +215,7 @@ export default StackNavigator({
                 </TouchableNativeFeedback>,
             headerRight: 
                 <TouchableNativeFeedback>
-                    <Image source={require('./img/search.png')}/>
+                    <Image source={require('./img/search.png')}/> 
                 </TouchableNativeFeedback>
         }),
     },
