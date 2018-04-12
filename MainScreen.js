@@ -21,19 +21,20 @@ class MainScreen extends React.Component {
             messages: [],
             typingText: null,
             right: 0,
+            reply: null,
         }; 
         this.keyboardHeight = new Animated.Value(0);
         this.renderSend = this.renderSend.bind(this);
         this.onReceive = this.onReceive.bind(this);
+        this.renderFooter = this.renderFooter.bind(this);
         this.connectToWitApi = this.connectToWitApi.bind(this);
         this.getRecipesFromAPi = this.getRecipesFromAPi.bind(this);
 
-        this._isAlright = null;
         this._isMounted = false;
     }
 
-    connectToWitApi = async() => {
-        fetch('https://api.wit.ai/message?v=20170307&q=' + 'i%20want%20to%20have%20a%20light%20lunch', {
+    connectToWitApi = async(param) => {
+        return fetch('https://api.wit.ai/message?v=20170307&q=' + param, {
             method: 'GET',
             headers: {
                 Accept: 'application/json',
@@ -42,7 +43,9 @@ class MainScreen extends React.Component {
             }, 
         }).then((response) => response.json())
           .then((responseJson) => {
-              console.log(responseJson.entities.typeOfMeal[0].value); 
+            this.setState(previousState => ({
+                reply: JSON.stringify(responseJson.entities.typeOfMeal[0].value),
+            }));
           }).catch((error) => {
               console.error(error);
           });
@@ -101,9 +104,7 @@ class MainScreen extends React.Component {
             }
         });
 
-        //http request to wit ai
-        this.connectToWitApi();
-        this.getRecipesFromAPi("lunch");
+        //this.getRecipesFromAPi("lunch");
     }
 
     componentWillUnmount () {
@@ -138,30 +139,26 @@ class MainScreen extends React.Component {
         }));
         
         this.botResponse(messages);
+        console.log(messages);
     }
 
     botResponse(messages){
         if(messages.length > 0){
-            if((messages[0].image || messages[0].location) || !this._isAlright){
-               this.setState(previousState => ({
-                   typingText: 'Chef Bot is typing...',
-               }));
-            }
+            this.setState(previousState => ({
+                typingText: 'Chef Bot is typing...',
+            }));
         }
 
         setTimeout(() => {
             if(this._isMounted === true){
                 if(messages.length > 0){
-                    if(messages.length > 0){
-                        this.onReceive('Nice picture!');
-                    }else if(messages[0].location){
-                        this.onReceive('My favorite place');
-                    }else{
-                        if(!this._isAlright){
-                            this._isAlright = true;
-                            this.onReceive('Alirghty then');
-                        }
+                    if(messages[0].text){
+                        this.connectToWitApi(messages[0].text);
+                        console.log(this.state.reply);  
+                        this.onReceive('Ok, let us get started!')
                     }
+                }else{
+                    this.onReceive('How can I help you today?');
                 }
             }
             this.setState(previousState => ({
@@ -219,6 +216,18 @@ class MainScreen extends React.Component {
             </Send>
         );
     }
+
+    renderFooter(props){
+        if(this.state.typingText){
+            return (
+                <View style={styles.footerContainer}>
+                    <Text style={styles.footerText}>
+                        {this.state.typingText}
+                    </Text>
+                </View>
+            );
+        }
+    }
     
     render() {
       return (
@@ -233,7 +242,8 @@ class MainScreen extends React.Component {
                 }}
                 renderBubble={this.renderBubble}
                 renderInputToolbar={this.renderInputToolbar}
-                renderSend={this.renderSend} />
+                renderSend={this.renderSend}
+                renderFooter={this.renderFooter} />
         </Animated.View>
       );
     }
@@ -249,6 +259,16 @@ const styles = StyleSheet.create({
         borderRadius: 24,
         borderColor: '#979797',
         position: 'absolute',
+    },
+    footerContainer: {
+        marginTop: 5,
+        marginLeft: 10,
+        marginRight: 10,
+        marginBottom: 10,
+    },
+    footerText: {
+        fontSize: 14,
+        color: '#aaa',
     },
 });
 
