@@ -19,12 +19,17 @@ class MainScreen extends React.Component {
         super(props);
         this.state = {
             messages: [],
+            typingText: null,
             right: 0,
         }; 
         this.keyboardHeight = new Animated.Value(0);
         this.renderSend = this.renderSend.bind(this);
+        this.onReceive = this.onReceive.bind(this);
         this.connectToWitApi = this.connectToWitApi.bind(this);
         this.getRecipesFromAPi = this.getRecipesFromAPi.bind(this);
+
+        this._isAlright = null;
+        this._isMounted = false;
     }
 
     connectToWitApi = async() => {
@@ -61,6 +66,8 @@ class MainScreen extends React.Component {
 
     //using bind or arrows in your render methods creates a new function on each render, resulting in a change of props for the child that receives them, forcing a re-render.
     componentWillMount(){
+        this._isMounted = true;
+
         this.keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', this._keyboardDidShow.bind(this))
         this.keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', this._keyboardDidHide.bind(this))
         
@@ -96,10 +103,12 @@ class MainScreen extends React.Component {
 
         //http request to wit ai
         this.connectToWitApi();
-        this.getRecipesFromAPi("chicken");
+        this.getRecipesFromAPi("lunch");
     }
 
     componentWillUnmount () {
+        this._isMounted = false;
+
         this.keyboardDidShowListener.remove();
         this.keyboardDidHideListener.remove();
         Dimensions.removeEventListener("change", this.renderSend);
@@ -126,6 +135,53 @@ class MainScreen extends React.Component {
     onSend(messages = []){
         this.setState(previousState => ({
             messages: GiftedChat.append(previousState.messages, messages),
+        }));
+        
+        this.botResponse(messages);
+    }
+
+    botResponse(messages){
+        if(messages.length > 0){
+            if((messages[0].image || messages[0].location) || !this._isAlright){
+               this.setState(previousState => ({
+                   typingText: 'Chef Bot is typing...',
+               }));
+            }
+        }
+
+        setTimeout(() => {
+            if(this._isMounted === true){
+                if(messages.length > 0){
+                    if(messages.length > 0){
+                        this.onReceive('Nice picture!');
+                    }else if(messages[0].location){
+                        this.onReceive('My favorite place');
+                    }else{
+                        if(!this._isAlright){
+                            this._isAlright = true;
+                            this.onReceive('Alirghty then');
+                        }
+                    }
+                }
+            }
+            this.setState(previousState => ({
+                typingText: null,
+            }));
+        }, 1000);
+    }
+
+    onReceive(text){
+        this.setState(previousState => ({
+            messages: GiftedChat.append(previousState.messages, {
+                _id: Math.round(Math.random() * 1000000),
+                text: text,
+                createdAt: new Date(),
+                user: {
+                    _id: 2,
+                    name: 'Chef Bot',
+                    avatar: require('./img/logo.png'),
+                }
+            })
         }))
     }
 
