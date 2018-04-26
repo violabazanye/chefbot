@@ -22,7 +22,7 @@ class MainScreen extends React.Component {
             messages: [],
             typingText: null,
             right: 0,
-            reply: '',
+            query: '',
         }; 
         this.keyboardHeight = new Animated.Value(0);
         this.renderSend = this.renderSend.bind(this);
@@ -44,17 +44,23 @@ class MainScreen extends React.Component {
             }, 
         }).then((response) => response.json())
           .then((responseJson) => {
-            this.setState({reply: JSON.stringify(responseJson)}, function(){
-                console.log(this.state.reply);
-                //call recipes API from here
+              var witResponse = responseJson.entities;  
+              var mergedEntities = '';
+              for(var x in witResponse){
+                  for(var i = 0; i < witResponse[x].length; i++){
+                      mergedEntities += witResponse[x][i].value + ',';
+                  }
+              }
+            this.setState({query: mergedEntities}, function(){
+                console.log(this.state.query); 
             });
           }).catch((error) => {
-              console.error(error); 
+              console.error(error);
           });
     } 
 
     //keep searching for better api
-    getRecipesFromAPi = async(param) => {
+    getRecipesFromApi = async(param) => {
         fetch("http://food2fork.com/api/search?key=48aecb84c8894961ef3e0e152b72f733&q=" + param, {
             method: 'GET',
             headers: {
@@ -64,6 +70,7 @@ class MainScreen extends React.Component {
         }).then((response) => response.json()) 
           .then((responseJson) => {
               console.log(responseJson); 
+              //set state of what to respond
           }).catch((error) => {
               console.error(error);
           });
@@ -96,17 +103,15 @@ class MainScreen extends React.Component {
         Dimensions.addEventListener('change', () => {
             const {width, height} = Dimensions.get('screen')
             if(height < width){
-                this.setState({
-                    right: (width+50)-width
+                this.setState((previousState) => {
+                    return {right: (width+50)-width}
                 });
             }else{
-                this.setState({
-                    right: (width+280)-width  
+                this.setState((previousState) => {
+                    return {right: (width+280)-width}
                 }); 
             }
         });
-
-        //this.getRecipesFromAPi("lunch");
     }
 
     componentWillUnmount () {
@@ -167,6 +172,7 @@ class MainScreen extends React.Component {
         }, 1000);
     }
 
+    //text should be output from recipe API
     onReceive(text){
         this.setState(previousState => ({
             messages: GiftedChat.append(previousState.messages, {
