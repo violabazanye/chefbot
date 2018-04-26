@@ -15,13 +15,14 @@ import { StackNavigator } from 'react-navigation';
 import { GiftedChat, Bubble, Send, InputToolbar } from 'react-native-gifted-chat';
 
 class MainScreen extends React.Component {
+    
     constructor(props){
         super(props);
         this.state = {
             messages: [],
             typingText: null,
             right: 0,
-            reply: null,
+            reply: '',
         }; 
         this.keyboardHeight = new Animated.Value(0);
         this.renderSend = this.renderSend.bind(this);
@@ -43,13 +44,14 @@ class MainScreen extends React.Component {
             }, 
         }).then((response) => response.json())
           .then((responseJson) => {
-            this.setState(previousState => ({
-                reply: JSON.stringify(responseJson.entities.typeOfMeal[0].value),
-            }));
+            this.setState({reply: JSON.stringify(responseJson)}, function(){
+                console.log(this.state.reply);
+                //call recipes API from here
+            });
           }).catch((error) => {
-              console.error(error);
+              console.error(error); 
           });
-    }
+    } 
 
     //keep searching for better api
     getRecipesFromAPi = async(param) => {
@@ -138,8 +140,7 @@ class MainScreen extends React.Component {
             messages: GiftedChat.append(previousState.messages, messages),
         }));
         
-        this.botResponse(messages);
-        console.log(messages);
+        this.botResponse(messages); 
     }
 
     botResponse(messages){
@@ -154,8 +155,7 @@ class MainScreen extends React.Component {
                 if(messages.length > 0){
                     if(messages[0].text){
                         this.connectToWitApi(messages[0].text);
-                        console.log(this.state.reply);  
-                        this.onReceive('Ok, let us get started!')
+                        this.onReceive("Ok, let's get started!")
                     }
                 }else{
                     this.onReceive('How can I help you today?');
