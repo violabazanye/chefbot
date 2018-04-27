@@ -13,6 +13,7 @@ import {
     Dimensions } from 'react-native';
 import { StackNavigator } from 'react-navigation';
 import { GiftedChat, Bubble, Send, InputToolbar } from 'react-native-gifted-chat';
+import RecipeCards from './RecipeCards';
 
 class MainScreen extends React.Component {
     
@@ -29,7 +30,6 @@ class MainScreen extends React.Component {
         this.onReceive = this.onReceive.bind(this);
         this.renderFooter = this.renderFooter.bind(this);
         this.connectToWitApi = this.connectToWitApi.bind(this);
-        this.getRecipesFromAPi = this.getRecipesFromAPi.bind(this);
 
         this._isMounted = false;
     }
@@ -58,23 +58,6 @@ class MainScreen extends React.Component {
               console.error(error);
           });
     } 
-
-    //keep searching for better api
-    getRecipesFromApi = async(param) => {
-        fetch("http://food2fork.com/api/search?key=48aecb84c8894961ef3e0e152b72f733&q=" + param, {
-            method: 'GET',
-            headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-            }, 
-        }).then((response) => response.json()) 
-          .then((responseJson) => {
-              console.log(responseJson); 
-              //set state of what to respond
-          }).catch((error) => {
-              console.error(error);
-          });
-    }
 
     //using bind or arrows in your render methods creates a new function on each render, resulting in a change of props for the child that receives them, forcing a re-render.
     componentWillMount(){
@@ -250,6 +233,7 @@ class MainScreen extends React.Component {
                 renderInputToolbar={this.renderInputToolbar}
                 renderSend={this.renderSend}
                 renderFooter={this.renderFooter} />
+            <RecipeCards content={this.state.query}/>
         </Animated.View>
       );
     }
