@@ -23,12 +23,13 @@ class MainScreen extends React.Component {
             messages: [],
             typingText: null,
             right: 0,
-            query: '',
+            query: null, 
         }; 
         this.keyboardHeight = new Animated.Value(0);
         this.renderSend = this.renderSend.bind(this);
         this.onReceive = this.onReceive.bind(this);
         this.renderFooter = this.renderFooter.bind(this);
+        this.renderCustomView = this.renderCustomView.bind(this);
         this.connectToWitApi = this.connectToWitApi.bind(this);
 
         this._isMounted = false;
@@ -217,6 +218,16 @@ class MainScreen extends React.Component {
             );
         }
     }
+
+    renderCustomView(props){
+        if(this.state.query && props.currentMessage.user._id === 2){
+            return (
+                <RecipeCards 
+                    content={this.state.query} 
+                />
+            ); 
+        }
+    }
     
     render() {
       return (
@@ -232,10 +243,10 @@ class MainScreen extends React.Component {
                 renderBubble={this.renderBubble}
                 renderInputToolbar={this.renderInputToolbar}
                 renderSend={this.renderSend}
+                renderCustomView={this.renderCustomView} 
                 renderFooter={this.renderFooter} />
-            <RecipeCards content={this.state.query}/>
         </Animated.View>
-      );
+      ); 
     }
 }
   

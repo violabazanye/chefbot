@@ -38,7 +38,9 @@ const styles = StyleSheet.create({
     container: {
         backgroundColor: 'white',
         borderRadius: 3.3,
-        margin: 10,
+        marginTop: 10,
+        marginRight: 10,
+        marginBottom: 10, 
         shadowOffset:{  width: 1,  height: 1,  },
         shadowColor: '#800000',
         shadowOpacity: 0.5,
