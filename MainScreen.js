@@ -67,20 +67,6 @@ class MainScreen extends React.Component {
         this.keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', this._keyboardDidShow.bind(this))
         this.keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', this._keyboardDidHide.bind(this))
         
-        this.setState({
-            messages: [ 
-                {
-                    _id: 1,
-                    text: 'Hello Viola!',
-                    createdAt: new Date(),
-                    user: {
-                        _id: 2,
-                        name: 'Chef Bot',
-                        avatar: require('./img/logo.png'),
-                    },
-                },
-            ], 
-        })
     }
 
     componentDidMount(){  
@@ -94,7 +80,22 @@ class MainScreen extends React.Component {
                 this.setState((previousState) => {
                     return {right: (width+280)-width}
                 }); 
-            }
+            }  
+        });
+
+        this.setState({
+            messages: [ 
+                {
+                    _id: 1,
+                    text: 'Hello Viola!',
+                    createdAt: new Date(),
+                    user: {
+                        _id: 2,
+                        name: 'Chef Bot',
+                        avatar: require('./img/logo.png'),
+                    },
+                },
+            ], 
         });
     }
 

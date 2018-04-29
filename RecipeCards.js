@@ -5,7 +5,12 @@ class RecipeCards extends React.Component{
     constructor(props){
         super(props);
 
+        this.state = {
+            recipes: [],
+        }
+
         this.getRecipesFromApi = this.getRecipesFromApi.bind(this);
+        this.shuffleArray = this.shuffleArray.bind(this);
     }
 
     //keep searching for better api
@@ -18,18 +23,36 @@ class RecipeCards extends React.Component{
             }, 
         }).then((response) => response.json()) 
           .then((responseJson) => {
-              console.log(responseJson); 
-              //set state of what to respond
+            this.setState({recipes: this.shuffleArray(responseJson.recipes)}, function(){
+                console.log("success"); 
+            });
           }).catch((error) => {
               console.error(error);
           });
     }
 
+    //fisher-yates algorithm
+    shuffleArray(params) {
+        for(let i = params.length - 1; i > 0; i--){
+            const j = Math.floor(Math.random() * (i + 1));
+            [params[i], params[j]] = [params[j], params[i]];
+        }
+        return params;
+    }
+
+    componentDidMount(){
+        this.getRecipesFromApi(this.props.content); 
+    }
+
     render(){
+        var itemsList = this.state.recipes.slice(0,3).map((item, key) =>
+            <View key={key} style={styles.container}>
+                <Text>This is supposed to be a card showing... {item.title}</Text>
+            </View>              
+        );
+        
         return(
-            <View style={styles.container}>
-                <Text>This is supposed to be a card showing... {this.props.content}</Text> 
-            </View>
+            <View>{ itemsList }</View>
         );
     }
 }
@@ -40,7 +63,6 @@ const styles = StyleSheet.create({
         borderRadius: 3.3,
         marginTop: 10,
         marginRight: 10,
-        marginBottom: 10, 
         shadowOffset:{  width: 1,  height: 1,  },
         shadowColor: '#800000',
         shadowOpacity: 0.5,
