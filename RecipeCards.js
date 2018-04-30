@@ -11,6 +11,7 @@ class RecipeCards extends React.Component{
 
         this.getRecipesFromApi = this.getRecipesFromApi.bind(this);
         this.shuffleArray = this.shuffleArray.bind(this);
+        this.changeColor = this.changeColor.bind(this);
     }
 
     //keep searching for better api
@@ -24,7 +25,7 @@ class RecipeCards extends React.Component{
         }).then((response) => response.json()) 
           .then((responseJson) => {
             this.setState({recipes: this.shuffleArray(responseJson.recipes)}, function(){
-                console.log("success"); 
+                console.log("recipes loaded"); 
             });
           }).catch((error) => {
               console.error(error);
@@ -40,14 +41,24 @@ class RecipeCards extends React.Component{
         return params;
     }
 
+    changeColor(param) {
+        var color = '';
+        if(param % 2 !== 0){
+            color = '#b81365';
+        }else{
+            color = '#6a0136';
+        }
+        return color;
+    }
+
     componentDidMount(){
         this.getRecipesFromApi(this.props.content); 
     }
 
     render(){
-        var itemsList = this.state.recipes.slice(0,3).map((item, key) =>
-            <View key={key} style={styles.container}>
-                <Text>This is supposed to be a card showing... {item.title}</Text>
+        var itemsList = this.state.recipes.slice(0,3).map((item, index) =>
+            <View key={item.recipe_id} style={[styles.container, {borderLeftColor: this.changeColor(index)}]}>
+                <Text style={styles.titleText}>{item.title}</Text> 
             </View>              
         );
         
@@ -67,7 +78,15 @@ const styles = StyleSheet.create({
         shadowColor: '#800000',
         shadowOpacity: 0.5,
         shadowRadius: 3.3,
-        elevation: 2,
+        elevation: 1, 
+        height: 105,
+        borderLeftWidth: 5,
+    },
+    titleText: {
+        margin: 10,
+        fontSize: 15,
+        fontFamily: 'Roboto',
+        color: '#4a4a4a',
     },
 });
 

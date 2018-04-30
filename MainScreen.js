@@ -87,7 +87,7 @@ class MainScreen extends React.Component {
             messages: [ 
                 {
                     _id: 1,
-                    text: 'Hello Viola!',
+                    text: "Hey there! I'm Chef Bot. What ingredients do you have? I can suggest some delicious recipes for you.",
                     createdAt: new Date(),
                     user: {
                         _id: 2,
