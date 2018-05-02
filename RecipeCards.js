@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, Image } from 'react-native';
 
 class RecipeCards extends React.Component{
     constructor(props){
@@ -14,9 +14,8 @@ class RecipeCards extends React.Component{
         this.changeColor = this.changeColor.bind(this);
     }
 
-    //keep searching for better api
     getRecipesFromApi = async(param) => {
-        fetch("http://food2fork.com/api/search?key=48aecb84c8894961ef3e0e152b72f733&q=" + param, {
+        fetch("https://api.edamam.com/search?app_id=2b4a2a13&app_key=07040ebc53dc66be4711f352a7f2b3f8&q=" + param, {
             method: 'GET',
             headers: {
                 Accept: 'application/json',
@@ -24,7 +23,7 @@ class RecipeCards extends React.Component{
             }, 
         }).then((response) => response.json()) 
           .then((responseJson) => {
-            this.setState({recipes: this.shuffleArray(responseJson.recipes)}, function(){
+            this.setState({recipes: this.shuffleArray(responseJson.hits)}, function(){
                 console.log("recipes loaded"); 
             });
           }).catch((error) => {
@@ -57,8 +56,14 @@ class RecipeCards extends React.Component{
 
     render(){
         var itemsList = this.state.recipes.slice(0,3).map((item, index) =>
-            <View key={item.recipe_id} style={[styles.container, {borderLeftColor: this.changeColor(index)}]}>
-                <Text style={styles.titleText}>{item.title}</Text> 
+            <View key={index} style={styles.container}>
+                <View style={{width: 130, margin: 10}}>
+                    <Text style={styles.titleText}>{item.recipe.label}</Text> 
+                    <Text style={styles.bodyText}>INGREDIENTS <Text style={{fontWeight: 'bold'}}>{item.recipe.ingredients.length}</Text></Text>
+                    <Text style={styles.bodyText}>CALORIES <Text style={{fontWeight: 'bold'}}>{Math.round(item.recipe.calories)} kcal</Text></Text>
+                    <Text style={styles.bodyText}>SERVINGS <Text style={{fontWeight: 'bold'}}>{item.recipe.yield}</Text></Text>
+                </View>
+                <Image style={styles.thumbnail} source={{uri: item.recipe.image}}/>
             </View>              
         );
         
@@ -79,15 +84,31 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.5,
         shadowRadius: 3.3,
         elevation: 1, 
-        height: 105,
-        borderLeftWidth: 5,
+        height: 140,
+        width: 298,  
+        flexDirection: 'row',
+        justifyContent: 'space-between'
     },
     titleText: {
-        margin: 10,
-        fontSize: 15,
+        fontSize: 16,
         fontFamily: 'Roboto',
         color: '#4a4a4a',
+        paddingLeft: 3,
+        paddingBottom: 3,
+        fontWeight: 'bold',  
     },
+    bodyText: {
+        padding: 3,
+        fontWeight: '100', 
+        fontFamily: 'Roboto',
+        fontSize: 12,
+    },
+    thumbnail: {
+        width: 140, 
+        height: 140, 
+        borderTopRightRadius: 3.3,
+        borderBottomRightRadius: 3.3,
+    }
 });
 
 export default RecipeCards;
