@@ -1,5 +1,14 @@
 import React from 'react';
-import { StyleSheet, Text, View, Image } from 'react-native';
+import { 
+    StyleSheet, 
+    Text, 
+    View, 
+    Image, 
+    TouchableNativeFeedback, 
+    Animated,
+    ActivityIndicator
+ } from 'react-native';
+import IngredientsCard from './IngredientsCard';
 
 class RecipeCards extends React.Component{
     constructor(props){
@@ -7,11 +16,15 @@ class RecipeCards extends React.Component{
 
         this.state = {
             recipes: [],
+            isLoading: true,
+            activeItem: {},
         }
 
         this.getRecipesFromApi = this.getRecipesFromApi.bind(this);
         this.shuffleArray = this.shuffleArray.bind(this);
-        this.changeColor = this.changeColor.bind(this);
+        this.toggleActiveItem = this.toggleActiveItem.bind(this);
+        this.renderIngredients = this.renderIngredients.bind(this);
+        this.renderRecipes = this.renderRecipes.bind(this);
     }
 
     getRecipesFromApi = async(param) => {
@@ -23,7 +36,7 @@ class RecipeCards extends React.Component{
             }, 
         }).then((response) => response.json()) 
           .then((responseJson) => {
-            this.setState({recipes: this.shuffleArray(responseJson.hits)}, function(){
+            this.setState({recipes: this.shuffleArray(responseJson.hits), isLoading: false}, function(){
                 console.log("recipes loaded"); 
             });
           }).catch((error) => {
@@ -40,36 +53,108 @@ class RecipeCards extends React.Component{
         return params;
     }
 
-    changeColor(param) {
-        var color = '';
-        if(param % 2 !== 0){
-            color = '#b81365';
-        }else{
-            color = '#6a0136';
-        }
-        return color;
+    componentWillMount(){
+        this.animatedValue = new Animated.Value(0);
+        this.value = 0;
+        this.animatedValue.addListener(({ value }) => { this.value = value });
     }
 
     componentDidMount(){
         this.getRecipesFromApi(this.props.content); 
     }
 
+    frontCardStyle(){
+        this.frontInterpolate = this.animatedValue.interpolate({
+            inputRange: [0, 180],
+            outputRange: ['0deg', '180deg']
+        })
+
+        const frontAnimatedStyle = {
+            transform: [{ rotateX: this.frontInterpolate }]
+        }
+
+        return frontAnimatedStyle;
+    }
+
+    backCardStyle(){
+        this.backInterpolate = this.animatedValue.interpolate({
+            inputRange: [0, 180],
+            outputRange: ['180deg', '360deg']
+        })
+
+        const backAnimatedStyle = {
+            transform: [{ rotateX: this.backInterpolate }]
+        }
+
+        return backAnimatedStyle;
+    }
+
+    flipCard(){
+        if(this.value >= 90){
+            Animated.spring(this.animatedValue, {
+                toValue: 0,
+                friction: 8,
+                tension: 10
+            }).start();
+        }else if(this.value < 90){
+            Animated.spring(this.animatedValue, {
+                toValue: 180,
+                friction: 8,
+                tension: 10
+            }).start();
+        }
+    }
+
+    toggleActiveItem(param){ 
+        this.setState({
+            activeItem: {[param] : true}
+        });
+        console.log('toggle button handler on card: '+ this.state.activeItem + param);
+        this.flipCard();  
+    } 
+
+    renderIngredients(param){
+        return(
+            <View>
+                <IngredientsCard recipe={param} style={this.backCardStyle()} />
+            </View>
+        );
+    }
+
+    renderRecipes (item, index){
+        return(
+            //place ingredient card here with opacity 0 then on press should change opacity and flip it
+            <TouchableNativeFeedback key={index} onPress={() => this.toggleActiveItem(index)}>       
+                <Animated.View style={[styles.container, this.state.activeItem[index] && this.frontCardStyle()]}> 
+                    <View style={{width: 130, margin: 10}}>
+                        <Text style={styles.titleText}>{item.recipe.label}</Text> 
+                        <Text style={styles.bodyText}>INGREDIENTS <Text style={{fontWeight: 'bold'}}>{item.recipe.ingredients.length}</Text></Text>
+                        <Text style={styles.bodyText}>CALORIES <Text style={{fontWeight: 'bold'}}>{Math.round(item.recipe.calories)} kcal</Text></Text>
+                        <Text style={styles.bodyText}>SERVINGS <Text style={{fontWeight: 'bold'}}>{item.recipe.yield}</Text></Text>
+                    </View>
+                    <Image style={styles.thumbnail} source={{uri: item.recipe.image}}/> 
+                </Animated.View>
+            </TouchableNativeFeedback>                 
+        );
+    }
+
     render(){
         var itemsList = this.state.recipes.slice(0,3).map((item, index) =>
-            <View key={index} style={styles.container}>
-                <View style={{width: 130, margin: 10}}>
-                    <Text style={styles.titleText}>{item.recipe.label}</Text> 
-                    <Text style={styles.bodyText}>INGREDIENTS <Text style={{fontWeight: 'bold'}}>{item.recipe.ingredients.length}</Text></Text>
-                    <Text style={styles.bodyText}>CALORIES <Text style={{fontWeight: 'bold'}}>{Math.round(item.recipe.calories)} kcal</Text></Text>
-                    <Text style={styles.bodyText}>SERVINGS <Text style={{fontWeight: 'bold'}}>{item.recipe.yield}</Text></Text>
+            this.renderRecipes(item, index) 
+        );
+        if(this.state.isLoading){
+            return(
+                <View style={{justifyContent: 'center', alignItems: 'center'}}>
+                    <ActivityIndicator size="small" color="#055864" />
                 </View>
-                <Image style={styles.thumbnail} source={{uri: item.recipe.image}}/>
-            </View>              
-        );
-        
-        return(
-            <View>{ itemsList }</View>
-        );
+            );
+        }else{ 
+            return(
+                <View>
+                    { itemsList }                  
+                </View>
+            );
+        }
     }
 }
 
