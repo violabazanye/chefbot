@@ -6,9 +6,9 @@ import {
     Image, 
     TouchableNativeFeedback, 
     Animated,
-    ActivityIndicator
+    ActivityIndicator,
+    Button
  } from 'react-native';
-import IngredientsCard from './IngredientsCard';
 
 class RecipeCards extends React.Component{
     constructor(props){
@@ -18,13 +18,15 @@ class RecipeCards extends React.Component{
             recipes: [],
             isLoading: true,
             activeItem: {},
+            card_height: new Animated.Value(0),
+            positionY: new Animated.Value(0)
         }
 
         this.getRecipesFromApi = this.getRecipesFromApi.bind(this);
         this.shuffleArray = this.shuffleArray.bind(this);
         this.toggleActiveItem = this.toggleActiveItem.bind(this);
-        this.renderIngredients = this.renderIngredients.bind(this);
         this.renderRecipes = this.renderRecipes.bind(this);
+        this.openDirections = this.openDirections.bind(this);
     }
 
     getRecipesFromApi = async(param) => {
@@ -38,7 +40,7 @@ class RecipeCards extends React.Component{
           .then((responseJson) => {
             this.setState({recipes: this.shuffleArray(responseJson.hits), isLoading: false}, function(){
                 console.log("recipes loaded"); 
-            });
+            });       
           }).catch((error) => {
               console.error(error);
           });
@@ -68,9 +70,18 @@ class RecipeCards extends React.Component{
             inputRange: [0, 180],
             outputRange: ['0deg', '180deg']
         })
+        this.frontOpacity = this.animatedValue.interpolate({
+            inputRange: [89, 90],
+            outputRange: [1, 0]
+        })
 
         const frontAnimatedStyle = {
-            transform: [{ rotateX: this.frontInterpolate }]
+            transform: [
+                { rotateX: this.frontInterpolate },
+                { perspective: 1000 }
+            ],
+            opacity: this.frontOpacity,
+            position: 'absolute'
         }
 
         return frontAnimatedStyle;
@@ -81,9 +92,20 @@ class RecipeCards extends React.Component{
             inputRange: [0, 180],
             outputRange: ['180deg', '360deg']
         })
+        this.backOpacity = this.animatedValue.interpolate({
+            inputRange: [89, 90],
+            outputRange: [0, 1]
+        })
 
         const backAnimatedStyle = {
-            transform: [{ rotateX: this.backInterpolate }]
+            transform: [
+                { rotateX: this.backInterpolate },
+                { translateY: this.state.positionY },
+                { perspective: 1000 }
+            ],
+            opacity: this.backOpacity, 
+            height: this.state.card_height,
+            position: 'relative'
         }
 
         return backAnimatedStyle;
@@ -91,50 +113,104 @@ class RecipeCards extends React.Component{
 
     flipCard(){
         if(this.value >= 90){
-            Animated.spring(this.animatedValue, {
-                toValue: 0,
-                friction: 8,
-                tension: 10
-            }).start();
+            Animated.parallel([
+                Animated.spring(this.animatedValue, {
+                    toValue: 0,
+                    friction: 8,
+                    tension: 10
+                }).start(),
+                Animated.spring(this.state.positionY, {
+                    toValue: 0
+                }).start(),
+                Animated.timing(this.state.card_height, {
+                    toValue: 140,
+                    duration: 800 
+                }).start()
+            ]);
         }else if(this.value < 90){
-            Animated.spring(this.animatedValue, {
-                toValue: 180,
-                friction: 8,
-                tension: 10
-            }).start();
+            Animated.parallel([
+                Animated.spring(this.animatedValue, {
+                    toValue: 180, 
+                    friction: 8,
+                    tension: 10
+                }).start(),
+                Animated.timing(this.state.card_height, {
+                    toValue: 380,
+                    duration: 800
+                }).start(),
+                Animated.spring(this.state.positionY, {
+                    toValue: -1
+                }).start()  
+            ]); 
         }
     }
 
     toggleActiveItem(param){ 
         this.setState({
-            activeItem: {[param] : true}
+            activeItem: {[param] : true} 
         });
-        console.log('toggle button handler on card: '+ this.state.activeItem + param);
-        this.flipCard();  
-    } 
+        console.log('toggle button handler on card');
+        this.flipCard();     
+    }    
 
-    renderIngredients(param){
-        return(
-            <View>
-                <IngredientsCard recipe={param} style={this.backCardStyle()} />
-            </View>
-        );
+    openDirections(){
+
     }
 
     renderRecipes (item, index){
         return(
-            //place ingredient card here with opacity 0 then on press should change opacity and flip it
-            <TouchableNativeFeedback key={index} onPress={() => this.toggleActiveItem(index)}>       
-                <Animated.View style={[styles.container, this.state.activeItem[index] && this.frontCardStyle()]}> 
-                    <View style={{width: 130, margin: 10}}>
-                        <Text style={styles.titleText}>{item.recipe.label}</Text> 
-                        <Text style={styles.bodyText}>INGREDIENTS <Text style={{fontWeight: 'bold'}}>{item.recipe.ingredients.length}</Text></Text>
-                        <Text style={styles.bodyText}>CALORIES <Text style={{fontWeight: 'bold'}}>{Math.round(item.recipe.calories)} kcal</Text></Text>
-                        <Text style={styles.bodyText}>SERVINGS <Text style={{fontWeight: 'bold'}}>{item.recipe.yield}</Text></Text>
-                    </View>
-                    <Image style={styles.thumbnail} source={{uri: item.recipe.image}}/> 
-                </Animated.View>
-            </TouchableNativeFeedback>                 
+            <View key={index}> 
+                <TouchableNativeFeedback onPress={() => this.toggleActiveItem(index)}>
+                    <Animated.View style={[styles.container, styles.containerBack, this.state.activeItem[index] && this.backCardStyle()]}>  
+                        <View>
+                            <Image style={styles.backImage} source={{uri: item.recipe.image}} />
+                            <View style={styles.overlay} />    
+                        </View>  
+                        <View style={{position: 'absolute', top: 0, width: 298, height: 140, margin: 10, flexDirection: 'column', justifyContent: 'space-between'}}>
+                            <View style={{flexDirection: 'row'}}>  
+                                <Image style={{width:24,height:24}} source={require('./img/outline_close_white_18dp.png')} />
+                                <View style={{width:180}}><Text style={[styles.titleText, {color: 'white', paddingLeft: 16}]}>{item.recipe.label}</Text></View>
+                                <Image style={{width:24,height:24,position:'absolute',right:10}} source={require('./img/outline_more_vert_white_18dp.png')} />
+                            </View> 
+                            <View style={{marginBottom:15,flexDirection: 'row', justifyContent: 'space-between', paddingRight: 24}}>  
+                                <View>
+                                    <Text style={[styles.bodyText, {color: 'white'}]}>SERVINGS</Text>
+                                    <Text style={[styles.bodyText, {color: 'white', fontWeight: 'bold', fontSize: 14}]}>{item.recipe.yield}</Text>
+                                </View>
+                                <View>
+                                    <Text style={[styles.bodyText, {color: 'white'}]}>CALORIES</Text> 
+                                    <Text style={[styles.bodyText, {color: 'white', fontWeight: 'bold', fontSize: 14}]}>{Math.round(item.recipe.calories)} kcal</Text>
+                                </View>
+                                <View>
+                                    <Text style={[styles.bodyText, {color: 'white'}]}>COOK TIME</Text>
+                                    {item.recipe.totalTime === 0 ? <Text style={[styles.bodyText, {color: 'white', fontWeight: 'bold', fontSize: 14}]}>N/A</Text> : <Text style={[styles.bodyText, {color: 'white', fontWeight: 'bold', fontSize: 14}]}>{item.recipe.totalTime} mins</Text>}
+                                </View> 
+                            </View>
+                        </View> 
+                        <View>
+                            <Text>INGREDIENTS</Text> 
+                        </View>
+                        <View style={{margin:16}}>  
+                            <Button 
+                                title= "VIEW DIRECTIONS"
+                                color= "#BFAB25"
+                                onPress= {this.openDirections}  
+                            />
+                        </View>
+                    </Animated.View> 
+                </TouchableNativeFeedback>
+                <TouchableNativeFeedback onPress={() => this.toggleActiveItem(index)}>       
+                    <Animated.View style={[styles.container, this.state.activeItem[index] && this.frontCardStyle()]}>  
+                        <View style={{width: 130, margin: 10}}>
+                            <Text style={styles.titleText}>{item.recipe.label}</Text> 
+                            <Text style={styles.bodyText}>INGREDIENTS <Text style={{fontWeight: 'bold'}}>{item.recipe.ingredients.length}</Text></Text>
+                            <Text style={styles.bodyText}>CALORIES <Text style={{fontWeight: 'bold'}}>{Math.round(item.recipe.calories)} kcal</Text></Text>
+                            <Text style={styles.bodyText}>SERVINGS <Text style={{fontWeight: 'bold'}}>{item.recipe.yield}</Text></Text>
+                        </View>
+                        <Image style={styles.thumbnail} source={{uri: item.recipe.image}}/>      
+                    </Animated.View>
+                </TouchableNativeFeedback>     
+            </View>              
         );
     }
 
@@ -153,7 +229,7 @@ class RecipeCards extends React.Component{
                 <View>
                     { itemsList }                  
                 </View>
-            );
+            );  
         }
     }
 }
@@ -172,7 +248,9 @@ const styles = StyleSheet.create({
         height: 140,
         width: 298,  
         flexDirection: 'row',
-        justifyContent: 'space-between'
+        justifyContent: 'space-between',
+        overflow: 'scroll',
+        backfaceVisibility: 'hidden', //doesn't work on android
     },
     titleText: {
         fontSize: 16,
@@ -193,6 +271,25 @@ const styles = StyleSheet.create({
         height: 140, 
         borderTopRightRadius: 3.3,
         borderBottomRightRadius: 3.3,
+    },
+    containerBack: {
+        position: 'absolute',
+        top: 0,
+        flexDirection: 'column'
+    },
+    backImage: {
+        width: 298,
+        height: 140,
+        borderTopRightRadius: 3.3,
+        borderTopLeftRadius: 3.3,
+    },
+    overlay: {
+        position: 'absolute',
+        top: 0,
+        opacity: 0.5,
+        width: 298,
+        height: 140,
+        backgroundColor: 'black' 
     }
 });
 
