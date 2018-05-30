@@ -7,7 +7,12 @@ import {
     TouchableNativeFeedback, 
     Animated,
     ActivityIndicator,
-    Button
+    Button,
+    LayoutAnimation,
+    UIManager,
+    Easing,
+    Platform,
+    ScrollView
  } from 'react-native';
 
 class RecipeCards extends React.Component{
@@ -18,8 +23,13 @@ class RecipeCards extends React.Component{
             recipes: [],
             isLoading: true,
             activeItem: {},
+            enabled: true,
             card_height: new Animated.Value(0),
             positionY: new Animated.Value(0)
+        }
+
+        if (Platform.OS === 'android'){
+            UIManager.setLayoutAnimationEnabledExperimental(true);
         }
 
         this.getRecipesFromApi = this.getRecipesFromApi.bind(this);
@@ -38,6 +48,7 @@ class RecipeCards extends React.Component{
             }, 
         }).then((response) => response.json()) 
           .then((responseJson) => {
+            LayoutAnimation.configureNext(LayoutAnimation.Presets.linear);
             this.setState({recipes: this.shuffleArray(responseJson.hits), isLoading: false}, function(){
                 console.log("recipes loaded"); 
             });       
@@ -62,7 +73,7 @@ class RecipeCards extends React.Component{
     }
 
     componentDidMount(){
-        this.getRecipesFromApi(this.props.content); 
+        this.getRecipesFromApi(this.props.content);   
     }
 
     frontCardStyle(){
@@ -124,7 +135,8 @@ class RecipeCards extends React.Component{
                 }).start(),
                 Animated.timing(this.state.card_height, {
                     toValue: 140,
-                    duration: 800 
+                    duration: 500,
+                    easing: Easing.easeOutBack
                 }).start()
             ]);
         }else if(this.value < 90){
@@ -135,8 +147,9 @@ class RecipeCards extends React.Component{
                     tension: 10
                 }).start(),
                 Animated.timing(this.state.card_height, {
-                    toValue: 380,
-                    duration: 800
+                    toValue: 450,
+                    duration: 500,
+                    easing: Easing.easeOutBack
                 }).start(),
                 Animated.spring(this.state.positionY, {
                     toValue: -1
@@ -170,12 +183,12 @@ class RecipeCards extends React.Component{
                             <View style={{flexDirection: 'row'}}>  
                                 <Image style={{width:24,height:24}} source={require('./img/outline_close_white_18dp.png')} />
                                 <View style={{width:180}}><Text style={[styles.titleText, {color: 'white', paddingLeft: 16}]}>{item.recipe.label}</Text></View>
-                                <Image style={{width:24,height:24,position:'absolute',right:10}} source={require('./img/outline_more_vert_white_18dp.png')} />
+                                <Image style={{width:24,height:24,position:'absolute',right:24}} source={require('./img/outline_favorite_border_white_18dp.png')} />
                             </View> 
                             <View style={{marginBottom:15,flexDirection: 'row', justifyContent: 'space-between', paddingRight: 24}}>  
                                 <View>
-                                    <Text style={[styles.bodyText, {color: 'white'}]}>SERVINGS</Text>
-                                    <Text style={[styles.bodyText, {color: 'white', fontWeight: 'bold', fontSize: 14}]}>{item.recipe.yield}</Text>
+                                    <Text style={[styles.bodyText, {color: 'white'}]}>INGREDIENTS</Text>
+                                    <Text style={[styles.bodyText, {color: 'white', fontWeight: 'bold', fontSize: 14}]}>{item.recipe.ingredients.length}</Text>
                                 </View>
                                 <View>
                                     <Text style={[styles.bodyText, {color: 'white'}]}>CALORIES</Text> 
@@ -187,9 +200,31 @@ class RecipeCards extends React.Component{
                                 </View> 
                             </View>
                         </View> 
-                        <View>
-                            <Text>INGREDIENTS</Text> 
+                        <View style={styles.tableRow}>
+                            <Text style={{fontWeight: 'bold'}}>INGREDIENTS</Text>
+                            <Text style={{fontWeight: 'bold'}}>ADD TO LIST</Text> 
                         </View>
+                        <ScrollView
+                            keyboardDismissMode='on-drag'
+                            showsVerticalScrollIndicator={true} 
+                            style={{flex:1}}
+                            onTouchStart={(ev) => {
+                                this.setState({enabled:false})
+                            }}
+                            onMomentumScrollEnd={(e) => {
+                                this.setState({enabled: true})
+                            }}
+                            onScrollEndDrag={(e) => {
+                                this.setState({enabled: true})
+                            }}
+                        > 
+                            {item.recipe.ingredientLines.map((data, i) =>
+                                <View key={i} style={styles.tableRow}>
+                                    <Text style={{fontSize:12,width:150}}>{data}</Text>
+                                    <Image style={{width:24,height:24,marginRight:24,justifyContent: 'center', alignItems: 'center'}} source={require('./img/outline_add_circle_outline_black_18dp.png')} />
+                                </View>   
+                            )}   
+                        </ScrollView>
                         <View style={{margin:16}}>  
                             <Button 
                                 title= "VIEW DIRECTIONS"
@@ -280,8 +315,7 @@ const styles = StyleSheet.create({
     backImage: {
         width: 298,
         height: 140,
-        borderTopRightRadius: 3.3,
-        borderTopLeftRadius: 3.3,
+        borderRadius: 3.3
     },
     overlay: {
         position: 'absolute',
@@ -289,7 +323,14 @@ const styles = StyleSheet.create({
         opacity: 0.5,
         width: 298,
         height: 140,
-        backgroundColor: 'black' 
+        backgroundColor: 'black',
+        borderRadius: 3.3,   
+    },
+    tableRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        margin: 16
     }
 });
 
