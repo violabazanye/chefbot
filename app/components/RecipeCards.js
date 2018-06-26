@@ -12,8 +12,12 @@ import {
     UIManager,
     Easing,
     Platform,
-    ScrollView
+    ScrollView,
+    TouchableWithoutFeedback
  } from 'react-native';
+import { connect } from 'react-redux';
+import { ActionCreators } from '../actions';
+import { bindActionCreators } from 'redux';
 
 class RecipeCards extends React.Component{
     constructor(props){
@@ -23,7 +27,7 @@ class RecipeCards extends React.Component{
             recipes: [],
             isLoading: true,
             activeItem: {},
-            enabled: true,
+            enabled: false,
             card_height: new Animated.Value(0),
             positionY: new Animated.Value(0)
         }
@@ -37,6 +41,7 @@ class RecipeCards extends React.Component{
         this.toggleActiveItem = this.toggleActiveItem.bind(this);
         this.renderRecipes = this.renderRecipes.bind(this);
         this.openDirections = this.openDirections.bind(this);
+        this.onIngredientPressed = this.onIngredientPressed.bind(this);
     }
 
     getRecipesFromApi = async(param) => {
@@ -64,6 +69,10 @@ class RecipeCards extends React.Component{
             [params[i], params[j]] = [params[j], params[i]];
         }
         return params;
+    }
+
+    handleParentScroll = () => {
+        this.props.handleToggleScroll(this.state.enabled);
     }
 
     componentWillMount(){
@@ -111,7 +120,7 @@ class RecipeCards extends React.Component{
         const backAnimatedStyle = {
             transform: [
                 { rotateX: this.backInterpolate },
-                { translateY: this.state.positionY },
+                { translateY: this.state.positionY }, 
                 { perspective: 1000 }
             ],
             opacity: this.backOpacity, 
@@ -135,7 +144,7 @@ class RecipeCards extends React.Component{
                 }).start(),
                 Animated.timing(this.state.card_height, {
                     toValue: 140,
-                    duration: 500,
+                    duration: 650,
                     easing: Easing.easeOutBack
                 }).start()
             ]);
@@ -148,7 +157,7 @@ class RecipeCards extends React.Component{
                 }).start(),
                 Animated.timing(this.state.card_height, {
                     toValue: 450,
-                    duration: 500,
+                    duration: 650,
                     easing: Easing.easeOutBack
                 }).start(),
                 Animated.spring(this.state.positionY, {
@@ -162,18 +171,26 @@ class RecipeCards extends React.Component{
         this.setState({
             activeItem: {[param] : true} 
         });
-        console.log('toggle button handler on card');
-        this.flipCard();     
+        console.log('toggle button handler on card');        
+        this.flipCard();               
     }    
 
     openDirections(){
 
+    }  
+    
+    onIngredientPressed(param){
+        
+    }
+
+    addIngredient(text){
+        this.props.addIngredient(text);
     }
 
     renderRecipes (item, index){
         return(
             <View key={index}> 
-                <TouchableNativeFeedback onPress={() => this.toggleActiveItem(index)}>
+                
                     <Animated.View style={[styles.container, styles.containerBack, this.state.activeItem[index] && this.backCardStyle()]}>  
                         <View>
                             <Image style={styles.backImage} source={{uri: item.recipe.image}} />
@@ -181,9 +198,11 @@ class RecipeCards extends React.Component{
                         </View>  
                         <View style={{position: 'absolute', top: 0, width: 298, height: 140, margin: 10, flexDirection: 'column', justifyContent: 'space-between'}}>
                             <View style={{flexDirection: 'row'}}>  
-                                <Image style={{width:24,height:24}} source={require('./img/outline_close_white_18dp.png')} />
+                                <TouchableWithoutFeedback onPress={() => this.toggleActiveItem(index)}>
+                                    <Image style={{width:24,height:24}} source={require('../img/outline_close_white_18dp.png')} />
+                                </TouchableWithoutFeedback>
                                 <View style={{width:180}}><Text style={[styles.titleText, {color: 'white', paddingLeft: 16}]}>{item.recipe.label}</Text></View>
-                                <Image style={{width:24,height:24,position:'absolute',right:24}} source={require('./img/outline_favorite_border_white_18dp.png')} />
+                                <Image style={{width:24,height:24,position:'absolute',right:24}} source={require('../img/outline_favorite_border_white_18dp.png')} />
                             </View> 
                             <View style={{marginBottom:15,flexDirection: 'row', justifyContent: 'space-between', paddingRight: 24}}>  
                                 <View>
@@ -208,20 +227,15 @@ class RecipeCards extends React.Component{
                             keyboardDismissMode='on-drag'
                             showsVerticalScrollIndicator={true} 
                             style={{flex:1}}
-                            onTouchStart={(ev) => {
-                                this.setState({enabled:false})
-                            }}
-                            onMomentumScrollEnd={(e) => {
-                                this.setState({enabled: true})
-                            }}
-                            onScrollEndDrag={(e) => {
-                                this.setState({enabled: true})
-                            }}
-                        > 
+                            onTouchStart={() => this.handleParentScroll.bind(this)} 
+                            onMomentumScrollEnd={() => this.setState({enabled: true})}       
+                            onScrollEndDrag={() => this.setState({enabled: true})} > 
                             {item.recipe.ingredientLines.map((data, i) =>
                                 <View key={i} style={styles.tableRow}>
                                     <Text style={{fontSize:12,width:150}}>{data}</Text>
-                                    <Image style={{width:24,height:24,marginRight:24,justifyContent: 'center', alignItems: 'center'}} source={require('./img/outline_add_circle_outline_black_18dp.png')} />
+                                    <TouchableWithoutFeedback onPress={() => this.addIngredient(data)}>
+                                        <Image style={{width:24,height:24,marginRight:24,justifyContent: 'center', alignItems: 'center'}} source={require('../img/outline_add_circle_outline_black_18dp.png')} />
+                                    </TouchableWithoutFeedback> 
                                 </View>   
                             )}   
                         </ScrollView>
@@ -233,7 +247,7 @@ class RecipeCards extends React.Component{
                             />
                         </View>
                     </Animated.View> 
-                </TouchableNativeFeedback>
+                
                 <TouchableNativeFeedback onPress={() => this.toggleActiveItem(index)}>       
                     <Animated.View style={[styles.container, this.state.activeItem[index] && this.frontCardStyle()]}>  
                         <View style={{width: 130, margin: 10}}>
@@ -334,4 +348,8 @@ const styles = StyleSheet.create({
     }
 });
 
-export default RecipeCards;
+function mapDispatchToProps(dispatch) {
+    return bindActionCreators(ActionCreators, dispatch);
+}
+  
+export default connect(() => { return {} }, mapDispatchToProps)(RecipeCards); 

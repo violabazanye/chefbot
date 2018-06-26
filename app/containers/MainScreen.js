@@ -5,15 +5,12 @@ import {
     View, 
     TouchableNativeFeedback, 
     Image, 
-    TextInput, 
     Animated, 
     Keyboard,
-    Alert, 
-    Button,
     Dimensions } from 'react-native';
 import { StackNavigator } from 'react-navigation';
 import { GiftedChat, Bubble, Send, InputToolbar } from 'react-native-gifted-chat';
-import RecipeCards from './RecipeCards';
+import RecipeCards from '../components/RecipeCards';
 
 class MainScreen extends React.Component {
     
@@ -21,9 +18,10 @@ class MainScreen extends React.Component {
         super(props);
         this.state = {
             messages: [],
-            typingText: null,
+            typingText: null,   
             right: 0,
             query: null, 
+            isEnabled: true,
         }; 
         this.keyboardHeight = new Animated.Value(0);
         this.renderSend = this.renderSend.bind(this);
@@ -69,7 +67,7 @@ class MainScreen extends React.Component {
         
     }
 
-    componentDidMount(){  
+    componentDidMount(){ 
         Dimensions.addEventListener('change', () => {
             const {width, height} = Dimensions.get('screen')
             if(height < width){
@@ -92,7 +90,7 @@ class MainScreen extends React.Component {
                     user: {
                         _id: 2,
                         name: 'Chef Bot',
-                        avatar: require('./img/logo.png'),
+                        avatar: require('../img/logo.png'),
                     },
                 },
             ], 
@@ -167,7 +165,7 @@ class MainScreen extends React.Component {
                 user: {
                     _id: 2,
                     name: 'Chef Bot',
-                    avatar: require('./img/logo.png'),
+                    avatar: require('../img/logo.png'),  
                 }
             })
         }))
@@ -202,7 +200,7 @@ class MainScreen extends React.Component {
                     right: this.state.right,
                 }}>
                 <View>
-                    <Image source={require('./img/send-button.png')} resizeMode={'center'}/>
+                    <Image source={require('../img/send-button.png')} resizeMode={'center'}/>
                 </View>
             </Send>
         );
@@ -220,18 +218,23 @@ class MainScreen extends React.Component {
         }
     }
 
+    toggleScroll(param) {
+        this.setState({isEnabled: param});
+    }
+
     renderCustomView(props){
         if(this.state.query && props.currentMessage.user._id === 2){
             return (
                 <RecipeCards 
                     content={this.state.query} 
+                    handleToggleScroll={this.toggleScroll.bind(this)}
                 />
             ); 
         }
     }
     
     render() {
-      return (
+        return (
         <Animated.View style={[styles.container, {paddingBottom: this.keyboardHeight}]}>
             <GiftedChat
                 placeholder="Type here"
@@ -245,7 +248,10 @@ class MainScreen extends React.Component {
                 renderInputToolbar={this.renderInputToolbar}
                 renderSend={this.renderSend}
                 renderCustomView={this.renderCustomView} 
-                renderFooter={this.renderFooter} />
+                renderFooter={this.renderFooter}
+                listViewProps={{
+                    scrollEnabled: this.state.isEnabled,
+                }} /> 
         </Animated.View>
       ); 
     }
@@ -289,11 +295,11 @@ export default StackNavigator({
             },
             headerLeft: 
                 <TouchableNativeFeedback onPress={() => navigation.navigate('DrawerToggle')}>
-                    <Image source={require('./img/menu-button.png')}/>
+                    <Image source={require('../img/menu-button.png')}/>
                 </TouchableNativeFeedback>,
             headerRight: 
                 <TouchableNativeFeedback>
-                    <Image source={require('./img/search.png')}/> 
+                    <Image source={require('../img/search.png')}/> 
                 </TouchableNativeFeedback>
         }),
     },
