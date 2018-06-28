@@ -1,7 +1,8 @@
 import {
     ADD_INGREDIENT,
     TOGGLE_INGREDIENT,
-    SAVE_RECIPE
+    SAVE_RECIPE,
+    SET_SEARCHED_RECIPES
 } from '../actions/types';
 
 export function shoppingList(state = [], action) {
@@ -39,6 +40,20 @@ export function saveRecipe(state = [], action) {
                 }
             ]
         default: 
+            return state
+    }
+}
+
+export function searchedRecipes(state = [], action){
+    switch(action.type) {
+        case SET_SEARCHED_RECIPES:
+            return [
+                ...state,
+                {
+                    recipes: action.recipes
+                }
+            ]
+        default:
             return state
     }
 }

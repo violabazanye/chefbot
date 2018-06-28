@@ -1,20 +1,8 @@
 import React from 'react';
 import { FlatList, TouchableOpacity, View, Text, StyleSheet, Image } from 'react-native';
 
-import { connect } from 'react-redux';
-import { ActionCreators } from '../actions';
-import { bindActionCreators } from 'redux';
-
-class MultiSelectList extends React.PureComponent {
+export default class MultiSelectList extends React.PureComponent {
     state = { selected: (new Map(): Map<string, boolean>) };
-  
-    addIngredient(text){
-      this.props.addIngredient(text); 
-    }
-
-    toggleIngredient(index){
-      this.props.toggleIngredient(index);      
-    }
     
     _onPressItem = (id: string) => {
       // updater functions are preferred for transactional updates
@@ -32,6 +20,8 @@ class MultiSelectList extends React.PureComponent {
         onPressItem={this._onPressItem}
         selected={!!this.state.selected.get(item.id)}
         title={item.title}
+        addItem={this.props.addItem}
+        removeItem={this.props.removeItem} 
       />
     );
   
@@ -48,8 +38,14 @@ class MultiSelectList extends React.PureComponent {
 }
 
 class MyListItem extends React.PureComponent {
-    _onPress = () => {
+    _onPressAdd = () => {
       this.props.onPressItem(this.props.id);
+      this.props.addItem(this.props.title);
+    };
+
+    _onPressRemove = () => {
+      this.props.onPressItem(this.props.id);
+      this.props.removeItem(this.props.id);
     };
   
     render() {
@@ -59,10 +55,10 @@ class MyListItem extends React.PureComponent {
               {this.props.title}
             </Text>
             {this.props.selected ?
-            <TouchableOpacity onPress={this._onPress}>
+            <TouchableOpacity onPress={this._onPressRemove}>
             <Image style={{width:24,height:24,marginRight:24,justifyContent: 'center', alignItems: 'center'}} source={require('../img/outline_remove_circle_outline_black_18dp.png')} />
             </TouchableOpacity> :
-            <TouchableOpacity onPress={this._onPress}>
+            <TouchableOpacity onPress={this._onPressAdd}>
             <Image style={{width:24,height:24,marginRight:24,justifyContent: 'center', alignItems: 'center'}} source={require('../img/outline_add_circle_outline_black_18dp.png')} />
             </TouchableOpacity>
             }
@@ -79,9 +75,3 @@ const styles = StyleSheet.create({
     margin: 16
   }
 });
-
-function mapDispatchToProps(dispatch) {
-  return bindActionCreators(ActionCreators, dispatch);
-}
-  
-export default connect(() => { return {} }, mapDispatchToProps)(MultiSelectList);

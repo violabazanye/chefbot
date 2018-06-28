@@ -1,3 +1,6 @@
+// Recipes
+export const SET_SEARCHED_RECIPES = 'SET_SEARCHED_RECIPES';
+
 //Ingredients List Scroll
 export const TOGGLE_PARENT_SCROLL = 'TOGGLE_PARENT_SCROLL';
 

@@ -17,7 +17,7 @@ import {
 import { connect } from 'react-redux';
 import { ActionCreators } from '../actions';
 import { bindActionCreators } from 'redux';
-import MultiSelectList from './MultiSelectList';
+import MultiSelectList from './MultiSelectList'; 
 
 class RecipeCards extends React.PureComponent{
     constructor(props){
@@ -37,7 +37,6 @@ class RecipeCards extends React.PureComponent{
         }
 
         this.getRecipesFromApi = this.getRecipesFromApi.bind(this);
-        this.shuffleArray = this.shuffleArray.bind(this);
         this.toggleActiveItem = this.toggleActiveItem.bind(this);
         this.renderRecipes = this.renderRecipes.bind(this);
         this.openDirections = this.openDirections.bind(this);
@@ -53,21 +52,12 @@ class RecipeCards extends React.PureComponent{
         }).then((response) => response.json()) 
           .then((responseJson) => {
             LayoutAnimation.configureNext(LayoutAnimation.Presets.linear);
-            this.setState({recipes: this.shuffleArray(responseJson.hits), isLoading: false}, function(){
+            this.setState({recipes: responseJson.hits, isLoading: false}, function(){
                 console.log("recipes loaded"); 
             });       
           }).catch((error) => {
               console.error(error);
           });
-    }
-
-    //fisher-yates algorithm
-    shuffleArray(params) {
-        for(let i = params.length - 1; i > 0; i--){
-            const j = Math.floor(Math.random() * (i + 1));
-            [params[i], params[j]] = [params[j], params[i]];
-        }
-        return params;
     }
 
     handleParentScroll = () => {
@@ -81,7 +71,7 @@ class RecipeCards extends React.PureComponent{
     }
 
     componentDidMount(){
-        this.getRecipesFromApi(this.props.content);   
+        this.getRecipesFromApi(this.props.content); 
     }
 
     frontCardStyle(){
@@ -171,11 +161,23 @@ class RecipeCards extends React.PureComponent{
             activeItem: {[param] : true} 
         });
         console.log('toggle active handler on card');        
-        this.flipCard();               
+        this.flipCard();     
+
+        //testing these
+        this.props.fetchRecipes(this.props.content)  
+        //console.log(this.props.searchedRecipes)          
     }    
 
-    openDirections(){
+    openDirections(){ 
 
+    }
+
+    addIngredient(text){
+      this.props.addIngredient(text); 
+    }
+
+    toggleIngredient(index){
+      this.props.toggleIngredient(index);      
     }
    
     renderRecipes (item, index){
@@ -220,6 +222,8 @@ class RecipeCards extends React.PureComponent{
                         </View>
                         <MultiSelectList
                             data = {arrayOfIngredients}
+                            addItem = {this.addIngredient.bind(this)}
+                            removeItem = {this.toggleIngredient.bind(this)}  
                         />
                         <View style={{margin:16}}>  
                             <Button 
@@ -330,8 +334,14 @@ const styles = StyleSheet.create({
     }
 });
 
+function mapStateToProps(state) {
+    return {
+        searchedRecipes: state.searchedRecipes
+    };
+}
+
 function mapDispatchToProps(dispatch) {
     return bindActionCreators(ActionCreators, dispatch);
 }
   
-export default connect(() => { return {} }, mapDispatchToProps)(RecipeCards); 
+export default connect(mapStateToProps, mapDispatchToProps)(RecipeCards); 
