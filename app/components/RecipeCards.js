@@ -12,14 +12,14 @@ import {
     UIManager,
     Easing,
     Platform,
-    ScrollView,
     TouchableWithoutFeedback
  } from 'react-native';
 import { connect } from 'react-redux';
 import { ActionCreators } from '../actions';
 import { bindActionCreators } from 'redux';
+import MultiSelectList from './MultiSelectList';
 
-class RecipeCards extends React.Component{
+class RecipeCards extends React.PureComponent{
     constructor(props){
         super(props);
 
@@ -41,7 +41,6 @@ class RecipeCards extends React.Component{
         this.toggleActiveItem = this.toggleActiveItem.bind(this);
         this.renderRecipes = this.renderRecipes.bind(this);
         this.openDirections = this.openDirections.bind(this);
-        this.onIngredientPressed = this.onIngredientPressed.bind(this);
     }
 
     getRecipesFromApi = async(param) => {
@@ -171,24 +170,20 @@ class RecipeCards extends React.Component{
         this.setState({
             activeItem: {[param] : true} 
         });
-        console.log('toggle button handler on card');        
+        console.log('toggle active handler on card');        
         this.flipCard();               
     }    
 
     openDirections(){
 
-    }  
-    
-    onIngredientPressed(param){
-        
     }
-
-    addIngredient(text){
-        this.props.addIngredient(text);
-    }
-
+   
     renderRecipes (item, index){
-        return(
+        let position = 0;
+        var arrayOfIngredients = item.recipe.ingredientLines.map(function(str){
+            return {id: position++, title: str} 
+        })
+        return( 
             <View key={index}> 
                 
                     <Animated.View style={[styles.container, styles.containerBack, this.state.activeItem[index] && this.backCardStyle()]}>  
@@ -223,22 +218,9 @@ class RecipeCards extends React.Component{
                             <Text style={{fontWeight: 'bold'}}>INGREDIENTS</Text>
                             <Text style={{fontWeight: 'bold'}}>ADD TO LIST</Text> 
                         </View>
-                        <ScrollView
-                            keyboardDismissMode='on-drag'
-                            showsVerticalScrollIndicator={true} 
-                            style={{flex:1}}
-                            onTouchStart={() => this.handleParentScroll.bind(this)} 
-                            onMomentumScrollEnd={() => this.setState({enabled: true})}       
-                            onScrollEndDrag={() => this.setState({enabled: true})} > 
-                            {item.recipe.ingredientLines.map((data, i) =>
-                                <View key={i} style={styles.tableRow}>
-                                    <Text style={{fontSize:12,width:150}}>{data}</Text>
-                                    <TouchableWithoutFeedback onPress={() => this.addIngredient(data)}>
-                                        <Image style={{width:24,height:24,marginRight:24,justifyContent: 'center', alignItems: 'center'}} source={require('../img/outline_add_circle_outline_black_18dp.png')} />
-                                    </TouchableWithoutFeedback> 
-                                </View>   
-                            )}   
-                        </ScrollView>
+                        <MultiSelectList
+                            data = {arrayOfIngredients}
+                        />
                         <View style={{margin:16}}>  
                             <Button 
                                 title= "VIEW DIRECTIONS"
