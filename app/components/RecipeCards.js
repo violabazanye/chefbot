@@ -165,7 +165,7 @@ class RecipeCards extends React.PureComponent{
 
         //testing these
         this.props.fetchRecipes(this.props.content)  
-        //console.log(this.props.searchedRecipes)          
+        console.log(this.props.searchedRecipes)               
     }    
 
     openDirections(){ 

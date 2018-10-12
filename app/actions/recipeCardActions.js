@@ -30,8 +30,8 @@ export function fetchRecipes(ingredients) {
             'app_key=07040ebc53dc66be4711f352a7f2b3f8',
             `q=${encodeURIComponent(ingredients)}` 
         ].join('&')
-        return Api.get(`/search?${params}`).then(resp => {
-            dispatch(setSearchedRecipes({recipes: resp.hits}));    
+        return Api.get(`/search?${params}`).then(response => {
+            dispatch(setSearchedRecipes({recipes: response.hits}));    
         }).catch( (ex) => {
             console.log(ex);
         });

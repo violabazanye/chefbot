@@ -44,7 +44,7 @@ export function saveRecipe(state = [], action) {
     }
 }
 
-export function searchedRecipes(state = [], action){
+export function searchedRecipes(state = {}, action){
     switch(action.type) {
         case SET_SEARCHED_RECIPES:
             return [
