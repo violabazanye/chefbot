@@ -32,6 +32,9 @@
     "redux": "^4.0.1",
     "redux-logger": "^3.0.6",
     "redux-thunk": "^2.3.0",
-    "yarn": "^1.16.0"
+    "yarn": "^1.16.0",
+    "braces": ">=2.3.1",
+    "js-yaml": ">=3.13.1",
+    "handlebars": ">=4.0.14"
   }
 }
