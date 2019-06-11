@@ -6,7 +6,8 @@
     "jest-expo": "30.0.0",
     "react-native-scripts": "2.0.1",
     "react-test-renderer": "16.5.2",
-    "braces": ">=2.3.1"
+    "braces": "^2.3.1",
+    "nwmatcher": "^1.4.4"
   },
   "main": "./node_modules/react-native-scripts/build/bin/crna-entry.js",
   "scripts": {
@@ -34,8 +35,9 @@
     "redux-logger": "^3.0.6",
     "redux-thunk": "^2.3.0",
     "yarn": "^1.16.0",
-    "braces": ">=2.3.1",
+    "braces": "^2.3.1",
     "js-yaml": ">=3.13.1",
-    "handlebars": ">=4.0.14"
+    "handlebars": ">=4.0.14",
+    "nwmatcher": "^1.4.4"
   }
 }
